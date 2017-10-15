@@ -5,6 +5,7 @@
 
 #include <d3d9.h>
 #include <d3dx9.h>
+#include <fstream>
 
 extern "C" {
     uintptr_t dxDevice;
@@ -29,7 +30,12 @@ void dxHookFunc() {
     RECT drawRect{0,0,300,200};
     //SetRect(&drawRect, 0, 0, 300, 200);
 
-    font->DrawTextA(NULL, "teeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\ntest\nteset\neeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeest", -1,
+    std::ifstream st("text.txt");
+    std::string str((std::istreambuf_iterator<char>(st)),
+        std::istreambuf_iterator<char>());
+
+
+    font->DrawTextA(NULL, str.c_str(), -1,
         &drawRect, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 255, 0, 0));
 
 }
