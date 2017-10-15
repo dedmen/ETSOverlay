@@ -22,22 +22,34 @@ ID3DXFont* font = nullptr;
 void dxHookFunc() {
     if (!font) {
         auto dev = reinterpret_cast<LPDIRECT3DDEVICE9>(dxDevice);
-        auto res = D3DXCreateFontA(dev, 40, 0, FW_NORMAL, 1, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+        auto res = D3DXCreateFontA(dev, 16, 0, FW_NORMAL, 1, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
             ANTIALIASED_QUALITY, FF_DONTCARE, "Arial", &font);
         if (!SUCCEEDED(res)) __debugbreak();
-    }
+	}
 
-    RECT drawRect{0,0,300,200};
+	//RECT drawRect{0,0,300,200};
+	//RECT drawRect{ 2420, 30, 530, 400 }; // doesn't render at x=2420!? or anything > 500
     //SetRect(&drawRect, 0, 0, 300, 200);
+	
+	RECT topleft{ 28, 28, 530, 400 };
+	RECT topright{ 32, 28, 530, 400 };
+	RECT bottomleft{ 28, 32, 530, 400 };
+	RECT bottomright{ 32, 32, 530, 400 };
+	RECT drawRect{ 30, 30, 530, 400 };
 
     std::ifstream st("text.txt");
     std::string str((std::istreambuf_iterator<char>(st)),
         std::istreambuf_iterator<char>());
+	
+	// create black "outline"
+	// couldn't figure out how to render to a texture once when the TXT changes,
+	// and then just draw the texture *sadface* -jack
+	font->DrawTextA(NULL, str.c_str(), -1, &topleft, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 0, 0, 0));
+	font->DrawTextA(NULL, str.c_str(), -1, &topright, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 0, 0, 0));
+	font->DrawTextA(NULL, str.c_str(), -1, &bottomleft, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 0, 0, 0));
+	font->DrawTextA(NULL, str.c_str(), -1, &bottomright, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 0, 0, 0));
 
-
-    font->DrawTextA(NULL, str.c_str(), -1,
-        &drawRect, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 255, 0, 0));
-
+	font->DrawTextA(NULL, str.c_str(), -1, &drawRect, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 255, 255, 0));
 }
 
 uintptr_t placeHookTotalOffs(uintptr_t totalOffset, uintptr_t jmpTo) {
