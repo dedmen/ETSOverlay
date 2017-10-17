@@ -10,6 +10,7 @@ _TEXT    SEGMENT
 
     EXTERN presentHookJmpBack:                                  qword
     EXTERN endSceneHookJmpBack:                                  qword
+    EXTERN D3DendSceneHookJmpBack:                                  qword
     
     ;misc
     EXTERN dxDevice:                                    qword
@@ -63,10 +64,6 @@ _TEXT    SEGMENT
 
         push        rcx
         push        rdx
-        ;push        r8
-        ;push        r9
-        ;push        r10
-        ;push        r11
 
         mov         rax, offset dxDevice;
 
@@ -74,10 +71,6 @@ _TEXT    SEGMENT
 
         call        dxHookFunc;
 
-        ;pop        r11
-        ;pop        r10
-        ;pop        r9
-        ;pop        r8
         pop        rdx
         pop        rcx
 
@@ -88,6 +81,42 @@ _TEXT    SEGMENT
         jmp         endSceneHookJmpBack;
 
     endSceneHook ENDP
+
+
+    PUBLIC D3DendSceneHook
+    D3DendSceneHook PROC
+        push        rcx
+        push        rdx
+        push        rax
+
+        mov         rax, offset dxDevice;
+
+        mov         [rax], rcx;
+
+        call        dxHookFunc;
+
+        pop        rax
+        pop        rdx
+        pop        rcx
+
+
+        ;Fixup
+        push        rdi  
+        sub         rsp,40h  
+        mov         qword ptr [rsp+28h],0FFFFFFFFFFFFFFFEh  
+        mov         qword ptr [rsp+50h],rbx  
+        mov         qword ptr [rsp+58h],rsi
+
+
+        jmp         D3DendSceneHookJmpBack;
+
+    D3DendSceneHook ENDP
+
+
+
+
+
+
 
 
 _TEXT    ENDS
