@@ -2,14 +2,12 @@
 #include <Windows.h>
 #include <Psapi.h>
 #pragma comment (lib, "Psapi.lib")//GetModuleInformation
-
+#pragma comment (lib, "version.lib")
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <fstream>
 
 #include <thread>
-#include <chrono>
-using namespace std::chrono_literals;
 
 extern "C" {
     uintptr_t dxDevice;
@@ -20,6 +18,7 @@ extern "C" {
     void presentHook();
     void endSceneHook();
     void D3DendSceneHook();
+    void D3DendSceneHook7();
 }
 
 
@@ -95,16 +94,40 @@ uintptr_t placeHookTotalOffs(uintptr_t totalOffset, uintptr_t jmpTo) {
 DWORD WINAPI hookThread(LPVOID lpParam) {
 
         uintptr_t D3DBase = 0;
+        HMODULE hModule = 0;
         while (!D3DBase) {        //Have to wait till d3d9.dll is loaded
             MODULEINFO modInfo = { 0 };
-            HMODULE hModule = GetModuleHandle(L"d3d9.dll");
+            hModule = GetModuleHandle(L"d3d9.dll");
             GetModuleInformation(GetCurrentProcess(), hModule, &modInfo, sizeof(MODULEINFO));
             D3DBase = reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll);
-            std::this_thread::sleep_for(100ms);
+            Sleep(100);
         }
 
-        placeHookTotalOffs(D3DBase + 0xBA90, reinterpret_cast<uintptr_t>(D3DendSceneHook));
-        D3DendSceneHookJmpBack = D3DBase + 0xBAA9;
+
+        WCHAR fileName[_MAX_PATH];
+        DWORD size = GetModuleFileName(hModule, fileName, _MAX_PATH);
+        fileName[size] = NULL;
+        DWORD handle = 0;
+        size = GetFileVersionInfoSize(fileName, &handle);
+        BYTE* versionInfo = new BYTE[size];
+        if (!GetFileVersionInfo(fileName, handle, size, versionInfo)) {
+            return 0;
+        }
+        UINT    			len = 0;
+        VS_FIXEDFILEINFO*   vsfi = NULL;
+        VerQueryValue(versionInfo, L"\\", (void**) &vsfi, &len);
+        short version = HIWORD(vsfi->dwFileVersionLS);
+        short minor = LOWORD(vsfi->dwFileVersionMS);
+        delete[] versionInfo;
+        if (minor == 3) {//win 8
+            placeHookTotalOffs(D3DBase + 0xBA90, reinterpret_cast<uintptr_t>(D3DendSceneHook));
+            D3DendSceneHookJmpBack = D3DBase + 0xBAA9;
+        } else {//win 7
+            placeHookTotalOffs(D3DBase + 0x2279F, reinterpret_cast<uintptr_t>(D3DendSceneHook7));
+            D3DendSceneHookJmpBack = D3DBase + 0x227A6;
+        }
+
+
         return 0;
 }
 

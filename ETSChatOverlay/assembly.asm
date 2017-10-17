@@ -112,6 +112,33 @@ _TEXT    SEGMENT
 
     D3DendSceneHook ENDP
 
+    PUBLIC D3DendSceneHook7
+    D3DendSceneHook7 PROC
+    push        rcx
+    push        rdx
+    push        rax
+
+    mov         rax, offset dxDevice;
+
+    mov         [rax], rcx;
+
+    call        dxHookFunc;
+
+    pop        rax
+    pop        rdx
+    pop        rcx
+
+
+    ;Fixup
+    mov     edi, edi
+    push    ebp
+    mov     ebp, esp
+    push    0FFFFFFFFh
+
+
+    jmp         D3DendSceneHookJmpBack;
+
+    D3DendSceneHook7 ENDP
 
 
 
