@@ -125,7 +125,7 @@ _TEXT    SEGMENT
         push        rcx
         push        rdx
         push        rax
-                mov         [offset EndSceneFunc], rbx
+        mov         [offset EndSceneFunc], rbx
 
         mov         rax, offset dxDevice;
 

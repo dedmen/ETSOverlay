@@ -173,7 +173,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     DWORD  ul_reason_for_call,
     LPVOID lpReserved
 ) {
-    WAIT_FOR_DEBUGGER_ATTACHED;
+    //WAIT_FOR_DEBUGGER_ATTACHED;
     switch (ul_reason_for_call) {
         case DLL_PROCESS_ATTACH: {
 
