@@ -111,7 +111,7 @@ _TEXT    SEGMENT
         sub         rsp,40h  
         mov         qword ptr [rsp+28h],0FFFFFFFFFFFFFFFEh  
         mov         qword ptr [rsp+50h],rbx  
-        ;mov         qword ptr [rsp+58h],rsi
+        mov         qword ptr [rsp+58h],rsi
 
 
         jmp         D3DendSceneHookJmpBack;
@@ -120,29 +120,29 @@ _TEXT    SEGMENT
 
     PUBLIC D3DendSceneHook7
     D3DendSceneHook7 PROC
-    push        rcx
-    push        rdx
-    push        rax
+        push        rcx
+        push        rdx
+        push        rax
 
-    mov         rax, offset dxDevice;
+        mov         rax, offset dxDevice;
 
-    mov         [rax], rcx;
+        mov         [rax], rcx;
 
-    call        dxHookFunc;
+        call        dxHookFunc;
 
-    pop        rax
-    pop        rdx
-    pop        rcx
-
-
-    ;Fixup
-    ;mov     edi, edi
-    ;push    ebp
-    ;mov     ebp, esp
-    ;push    0FFFFFFFFh
+        pop        rax
+        pop        rdx
+        pop        rcx
 
 
-    jmp         D3DendSceneHookJmpBack;
+        ;Fixup
+        push        rdi  
+        sub         rsp,40h  
+        mov         qword ptr [rsp+28h],0FFFFFFFFFFFFFFFEh  
+        mov         qword ptr [rsp+50h],rbx  
+
+
+        jmp         D3DendSceneHookJmpBack;
 
     D3DendSceneHook7 ENDP
 
