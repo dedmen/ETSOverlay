@@ -123,6 +123,7 @@ _TEXT    SEGMENT
         push        rcx
         push        rdx
         push        rax
+        push        rbx
 
         mov         rax, offset dxDevice;
 
@@ -130,6 +131,7 @@ _TEXT    SEGMENT
 
         call        dxHookFunc;
 
+        pop        rbx
         pop        rax
         pop        rdx
         pop        rcx
