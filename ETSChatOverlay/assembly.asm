@@ -4,7 +4,8 @@ _TEXT    SEGMENT
     ;https://msdn.microsoft.com/en-us/library/windows/hardware/ff561499(v=vs.85).aspx
 
     ;mangled functions
-    EXTERN dxHookFunc:               PROC;    EngineHook::_scriptEntered
+    EXTERN dxHookFunc:               PROC;
+    EXTERN EndSceneFunc:               PROC;
 
     ;JmpBacks
 
@@ -69,6 +70,11 @@ _TEXT    SEGMENT
 
         mov         [rax], rcx;
 
+        mov         rax, offset EndSceneFunc;
+        mov         rcx, [rcx]
+        mov         rcx, qword ptr [rcx+150h]
+        mov         [rax], rcx;
+
         call        dxHookFunc;
 
         pop        rdx
@@ -130,10 +136,10 @@ _TEXT    SEGMENT
 
 
     ;Fixup
-    mov     edi, edi
-    push    ebp
-    mov     ebp, esp
-    push    0FFFFFFFFh
+    ;mov     edi, edi
+    ;push    ebp
+    ;mov     ebp, esp
+    ;push    0FFFFFFFFh
 
 
     jmp         D3DendSceneHookJmpBack;
