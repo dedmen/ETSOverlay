@@ -94,7 +94,7 @@ _TEXT    SEGMENT
         push        rcx
         push        rdx
         push        rax
-        push        rbx
+        mov         [offset EndSceneFunc], rbx
 
         mov         rax, offset dxDevice;
 
@@ -102,7 +102,7 @@ _TEXT    SEGMENT
 
         call        dxHookFunc;
 
-        pop        rbx
+        mov        rbx, [offset EndSceneFunc]
         pop        rax
         pop        rdx
         pop        rcx
@@ -125,7 +125,7 @@ _TEXT    SEGMENT
         push        rcx
         push        rdx
         push        rax
-        push        rbx
+                mov         [offset EndSceneFunc], rbx
 
         mov         rax, offset dxDevice;
 
@@ -133,7 +133,7 @@ _TEXT    SEGMENT
 
         call        dxHookFunc;
 
-        pop        rbx
+        mov        rbx, [offset EndSceneFunc]
         pop        rax
         pop        rdx
         pop        rcx

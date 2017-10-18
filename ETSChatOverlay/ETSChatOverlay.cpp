@@ -30,8 +30,8 @@ ID3DXFont* font = nullptr;
 void dxHookFunc() {
     auto dev = reinterpret_cast<LPDIRECT3DDEVICE9>(dxDevice);
     if (!font) {
-        std::stringstream ss;
-        ss << "0x" << std::uppercase << std::setfill('0') << std::setw(4) << std::hex << EndSceneFunc -d3d9Base;
+        //std::stringstream ss;
+        //ss << "0x" << std::uppercase << std::setfill('0') << std::setw(4) << std::hex << EndSceneFunc -d3d9Base;
         //MessageBoxA(0, ss.str().c_str(), ss.str().c_str(), 0);
         auto res = D3DXCreateFontA(dev, 16, 0, FW_NORMAL, 1, false, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
             ANTIALIASED_QUALITY, FF_DONTCARE, "Arial", &font);
@@ -47,6 +47,7 @@ void dxHookFunc() {
     RECT bottomleft{ 28, 32, 530, 400 };
     RECT bottomright{ 32, 32, 530, 400 };
     RECT drawRect{ 30, 30, 530, 400 };
+    RECT drawRect2{ 0, 0, 530, 400 };
 
     std::ifstream st("text.txt");
     std::string str((std::istreambuf_iterator<char>(st)),
@@ -61,6 +62,7 @@ void dxHookFunc() {
     font->DrawTextA(NULL, str.c_str(), -1, &bottomright, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 0, 0, 0));
 
     font->DrawTextA(NULL, str.c_str(), -1, &drawRect, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 255, 255, 0));
+    //font->DrawTextA(NULL, "loooooooool", -1, &drawRect2, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 255, 255, 0));
 }
 
 uintptr_t placeHookTotalOffs(uintptr_t totalOffset, uintptr_t jmpTo) {
