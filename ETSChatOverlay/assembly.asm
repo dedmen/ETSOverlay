@@ -136,7 +136,7 @@ _TEXT    SEGMENT
 
 
         ;Fixup
-        push        rdi  
+        push        rsi  
         sub         rsp,40h  
         mov         qword ptr [rsp+28h],0FFFFFFFFFFFFFFFEh  
         mov         qword ptr [rsp+50h],rbx  
