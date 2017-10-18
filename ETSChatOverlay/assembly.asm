@@ -111,7 +111,7 @@ _TEXT    SEGMENT
         sub         rsp,40h  
         mov         qword ptr [rsp+28h],0FFFFFFFFFFFFFFFEh  
         mov         qword ptr [rsp+50h],rbx  
-        mov         qword ptr [rsp+58h],rsi
+        ;mov         qword ptr [rsp+58h],rsi
 
 
         jmp         D3DendSceneHookJmpBack;

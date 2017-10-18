@@ -127,10 +127,10 @@ DWORD WINAPI hookThread(LPVOID lpParam) {
         delete[] versionInfo;
         if (minor == 3) {//win 8
             placeHookTotalOffs(D3DBase + 0xBA90, reinterpret_cast<uintptr_t>(D3DendSceneHook));
-            D3DendSceneHookJmpBack = D3DBase + 0xBAA9;
+            D3DendSceneHookJmpBack = D3DBase + 0xBAA4;
         } else {//win 7
             placeHookTotalOffs(D3DBase + 0x10A28, reinterpret_cast<uintptr_t>(D3DendSceneHook));
-            D3DendSceneHookJmpBack = D3DBase + 0x10A3C;
+            D3DendSceneHookJmpBack = D3DBase + 0x10A37;
         }
 
 
