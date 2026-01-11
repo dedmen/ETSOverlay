@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Quelldateien\UltralightGPU">
+      <UniqueIdentifier>{10fb5c1a-979a-4669-833d-a58f418e6036}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -21,10 +24,78 @@
     <ClCompile Include="ETSChatOverlay.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="..\imgui\imgui.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui\imgui_draw.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui\imgui_tables.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui\imgui_widgets.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui\backends\imgui_impl_win32.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui\imgui_demo.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\imgui\backends\imgui_impl_dx11.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="GPUContextD3D11.cpp">
+      <Filter>Quelldateien\UltralightGPU</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChainD3D11.cpp">
+      <Filter>Quelldateien\UltralightGPU</Filter>
+    </ClCompile>
+    <ClCompile Include="GPUDriverD3D11Overlay.cpp">
+      <Filter>Quelldateien\UltralightGPU</Filter>
+    </ClCompile>
+    <ClCompile Include="GPUDriverImpl.cpp">
+      <Filter>Quelldateien\UltralightGPU</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenGrab11.cpp">
+      <Filter>Quelldateien\UltralightGPU</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewAPI.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\simplefilewatcher\source\FileWatcher.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\simplefilewatcher\source\FileWatcherWin32.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="assembly.asm">
       <Filter>Quelldateien</Filter>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GPUDriverD3D11Overlay.hpp">
+      <Filter>Quelldateien\UltralightGPU</Filter>
+    </ClInclude>
+    <ClInclude Include="GPUContextD3D11.hpp">
+      <Filter>Quelldateien\UltralightGPU</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChainD3D11.hpp">
+      <Filter>Quelldateien\UltralightGPU</Filter>
+    </ClInclude>
+    <ClInclude Include="GPUDriverImpl.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenGrab11.hpp">
+      <Filter>Quelldateien\UltralightGPU</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewAPI.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="FNV1A.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

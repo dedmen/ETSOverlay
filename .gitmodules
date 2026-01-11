@@ -1,0 +1,12 @@
+[submodule "imgui"]
+	path = imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "ETSChatOverlay/lib/Ultralight/include"]
+	path = ETSChatOverlay/lib/Ultralight/include
+	url = https://github.com/dedmen/Ultralight-API.git
+[submodule "ETSChatOverlay/lib/Ultralight/AppCore"]
+	path = ETSChatOverlay/lib/Ultralight/AppCore
+	url = https://github.com/ultralight-ux/AppCore.git
+[submodule "ETSChatOverlay/lib/simplefilewatcher"]
+	path = ETSChatOverlay/lib/simplefilewatcher
+	url = https://github.com/apetrone/simplefilewatcher.git

@@ -15,19 +15,19 @@
     <ProjectGuid>{D12DDB11-B293-4431-9918-C96DE2D541B7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ETSChatOverlay</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -58,12 +58,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include\DX</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\dev\ETSOverlay\imgui;D:\dev\ETSOverlay\ETSChatOverlay\lib\Ultralight\include;D:\dev\ETSOverlay\ETSChatOverlay\lib\simplefilewatcher\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\lib;$(ProjectDir)\lib\Ultralight;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>d3d9.lib;d3dx9d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -92,12 +93,37 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\imgui\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="..\imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\imgui\imgui.cpp" />
+    <ClCompile Include="..\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\imgui\imgui_widgets.cpp" />
     <ClCompile Include="ETSChatOverlay.cpp" />
+    <ClCompile Include="GPUContextD3D11.cpp" />
+    <ClCompile Include="GPUDriverImpl.cpp" />
+    <ClCompile Include="lib\simplefilewatcher\source\FileWatcher.cpp" />
+    <ClCompile Include="lib\simplefilewatcher\source\FileWatcherWin32.cpp" />
+    <ClCompile Include="ScreenGrab11.cpp" />
+    <ClCompile Include="SwapChainD3D11.cpp" />
+    <ClCompile Include="GPUDriverD3D11Overlay.cpp" />
+    <ClCompile Include="ViewAPI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="assembly.asm">
       <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FNV1A.hpp" />
+    <ClInclude Include="GPUContextD3D11.hpp" />
+    <ClInclude Include="GPUDriverImpl.hpp" />
+    <ClInclude Include="ScreenGrab11.hpp" />
+    <ClInclude Include="SwapChainD3D11.hpp" />
+    <ClInclude Include="GPUDriverD3D11Overlay.hpp" />
+    <ClInclude Include="ViewAPI.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
