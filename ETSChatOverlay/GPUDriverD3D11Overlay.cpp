@@ -15,6 +15,7 @@
 #include "SwapChainD3D11.hpp"
 #include "ScreenGrab11.hpp"
 
+#pragma comment(lib, "D3DCompiler.lib")
 
 #define SHADER_PATH L".\\shaders\\hlsl\\"
 

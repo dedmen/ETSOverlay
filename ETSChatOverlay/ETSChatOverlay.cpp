@@ -1,11 +1,11 @@
-#include <cstdint>
 #include <Windows.h>
 #include <Psapi.h>
 #pragma comment (lib, "Psapi.lib")//GetModuleInformation
 #pragma comment (lib, "version.lib")
 #pragma comment (lib, "DXGI.lib")
 
-
+#include <cstdint>
+#include <string_view>
 
 #pragma comment (lib, "AppCore.lib")
 #pragma comment (lib, "Ultralight.lib")
@@ -17,76 +17,19 @@
 #include <iomanip>
 #include <thread>
 
-
-
-
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRA_LEAN
-
-#define NOGDICAPMASKS         //CC_ * , LC_*, PC_*, CP_*, TC_*, RC_
-//#define NOVIRTUALKEYCODES     //VK_ *
-//#define NOWINMESSAGES         //WM_ * , EM_*, LB_*, CB_*
-//#define NOWINSTYLES           //WS_ * , CS_*, ES_*, LBS_*, SBS_*, CBS_*
-#define NOSYSMETRICS          //SM_ *
-#define NOMENUS               //MF_ *
-#define NOICONS               //IDI_ *
-#define NOKEYSTATES           //MK_ *
-#define NOSYSCOMMANDS         //SC_ *
-#define NORASTEROPS           //Binary and Tertiary raster ops
-#define NOSHOWWINDOW          //SW_ *
-#define NOATOM                //Atom Manager routines
-#define NOCLIPBOARD           //Clipboard routines
-#define NOCOLOR               //Screen colors
-#define NOCTLMGR              //Control and Dialog routines
-#define NODRAWTEXT            //DrawText() and DT_*
-#define NOGDI                 //All GDI defines and routines
-#define NOKERNEL              //All KERNEL defines and routines
-#define NONLS                 //All NLS defines and routines
-//#define NOUSER                //All USER defines and routines
-//#define NOMB                  //MB_ * and MessageBox()
-#define NOMEMMGR              //GMEM_ * , LMEM_*, GHND, LHND, associated routines
-#define NOMETAFILE            //typedef METAFILEPICT
-#define NOMINMAX              //Macros min(a, b) and max(a, b)
-//#define NOMSG                 //typedef MSG and associated routines
-#define NOOPENFILE            //OpenFile(), OemToAnsi, AnsiToOem, and OF_*
-#define NOSCROLL              //SB_ * and scrolling routines
-#define NOSERVICE             //All Service Controller routines, SERVICE_ equates, etc.
-#define NOSOUND               //Sound driver routines
-#define NOTEXTMETRIC          //typedef TEXTMETRIC and associated routines
-#define NOWH                  //SetWindowsHook and WH_*
-//#define NOWINOFFSETS          //GWL_ * , GCL_*, associated routines
-#define NOCOMM                //COMM driver routines
-#define NOKANJI               //Kanji support stuff.
-#define NOHELP                //Help engine interface.
-#define NOPROFILER            //Profiler interface.
-#define NODEFERWINDOWPOS      //DeferWindowPos routines
-#define NOMCX                 //Modem Configuration Extensions
-
-#include <cassert>
-#include <Windows.h>
 #include <d3d11.h>
 #include <dxgi.h>
 #include <dxgi1_4.h>
 #include <dxgi1_5.h>
 
-#include "../imgui/imgui.h"
-#include "../imgui/backends/imgui_impl_dx11.h"
-#include "../imgui/backends/imgui_impl_win32.h"
 #include <FileWatcher/FileWatcher.h>
 
+#include "MemorySection.hpp"
 #include "ViewAPI.hpp"
 
 
-#define EXPORT extern "C"
-
-//extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-static LRESULT FAKE_Wndproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-static LRESULT(*OLD_Wndproc)(HWND, UINT, WPARAM, LPARAM) = nullptr;
-
-[[noreturn]] static void fatal_error(const char* const msg) {
-    MessageBoxA(NULL, msg, "Fatal Error", 0);
-    abort();
-}
+#include "HookManager.hpp"
+using namespace std::string_view_literals;
 
 template<typename T>
 static inline T hack_vtable(T* old_fun, T new_fun) noexcept {
@@ -100,30 +43,15 @@ static inline T hack_vtable(T* old_fun, T new_fun) noexcept {
     return ret;
 }
 
-typedef void(*dummy_function)(void);
-
 
 typedef HRESULT(*FUN_Present)(IDXGISwapChain4* This, UINT SyncInterval, UINT PresentFlags);
 static HRESULT FAKE_Present(IDXGISwapChain4* This, UINT SyncInterval, UINT PresentFlags);
 static FUN_Present OLD_Present = nullptr;
 
-static bool should_show_ui = true;
-
-//#define USE_IMGUI
 #define USE_ULTRALIGHT
 
 static HWND                     g_hWnd = nullptr;
-#ifdef USE_IMGUI
-static HMODULE					g_hModule = nullptr;
-static ID3D11Device* g_pd3dDevice = nullptr;
-static ID3D11DeviceContext* g_pd3dContext = nullptr;
-static IDXGISwapChain* g_pSwapChain = nullptr;
-#endif
 static std::once_flag           g_isInitialized;
-
-
-
-
 
 #include <Ultralight/Ultralight.h>
 #include <AppCore/Platform.h>
@@ -455,19 +383,7 @@ static HRESULT FAKE_Present(IDXGISwapChain4* pSwapChain, UINT SyncInterval, UINT
 
 
     // Render!
-    if (should_show_ui) {
-#ifdef USE_IMGUI
-        ImGui_ImplDX11_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-        ImGui::NewFrame();
-
-        ImGui::ShowDemoWindow();
-
-
-        ImGui::Render();
-        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-#endif
-
+    {
         // See if we should reload our main view
         fileWatcher.update();
 
@@ -477,23 +393,6 @@ static HRESULT FAKE_Present(IDXGISwapChain4* pSwapChain, UINT SyncInterval, UINT
 
     return OLD_Present(pSwapChain, SyncInterval, PresentFlags);
 }
-
-static LRESULT FAKE_Wndproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    //if ((uMsg == WM_KEYUP) && (wParam == VK_ESCAPE)) {
-    //    should_show_ui = !should_show_ui;
-    //    return true;
-    //}
-
-    //if (should_show_ui && ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
-    //    return true;
-    //}
-
-    return CallWindowProc((WNDPROC)OLD_Wndproc, hWnd, uMsg, wParam, lParam);
-}
-
-
-
-
 
 
 
@@ -562,176 +461,105 @@ void dxHookFunc() {
     //font->DrawTextA(NULL, "loooooooool", -1, &drawRect2, DT_LEFT | DT_WORDBREAK, D3DCOLOR_ARGB(255, 255, 255, 0));
 }
 */
-uintptr_t placeHookTotalOffs(uintptr_t totalOffset, uintptr_t jmpTo) {
-    DWORD dwVirtualProtectBackup;
 
 
-    /*
-    32bit
-    jmp 0x123122
-    0:  e9 1e 31 12 00          jmp    123123 <_main+0x123123>
-    64bit
-    FF 25 64bit relative
-    */
 
-    //auto distance = std::max(totalOffset, jmpTo) - std::min(totalOffset, jmpTo);
-    // if distance < 2GB (2147483648) we could use the 32bit relative jmp
-    VirtualProtect(reinterpret_cast<LPVOID>(totalOffset), 14u, 0x40u, &dwVirtualProtectBackup);
-    auto jmpInstr = reinterpret_cast<unsigned char*>(totalOffset);
-    auto addrOffs = reinterpret_cast<uint32_t*>(totalOffset + 1);
-    *jmpInstr = 0x68; //push DWORD
-    *addrOffs = static_cast<uint32_t>(jmpTo) /*- totalOffset - 6*/;//offset
-    *reinterpret_cast<uint32_t*>(totalOffset + 5) = 0x042444C7; //MOV [RSP+4],
-    *reinterpret_cast<uint32_t*>(totalOffset + 9) = static_cast<uint64_t>(jmpTo) >> 32;//DWORD
-    *reinterpret_cast<unsigned char*>(totalOffset + 13) = 0xc3;//ret
-    VirtualProtect(reinterpret_cast<LPVOID>(totalOffset), 14u, dwVirtualProtectBackup, &dwVirtualProtectBackup);
-    return totalOffset + 14;
-
-
-}
-
-#ifdef _DEBUG
-#define WAIT_FOR_DEBUGGER_ATTACHED while (!IsDebuggerPresent()) Sleep(1);
-#else
-#define WAIT_FOR_DEBUGGER_ATTACHED 
-#endif
+HookManager::Pattern pat_DXGIPresent{
+    "xxxxxxxx?xxxxxxxxxx????xxxxxx?xxxxxxx?xxx????xxxxxxxx?xxxxxx?xxx??xx????xx?????xx"sv,
+    "\x55\x57\x41\x56\x48\x8D\x6C\x24\x00\x48\x81\xEC\x70\x01\x00\x00\x48\x8B\x05\x00\x00\x00\x00\x48\x33\xC4\x48\x89\x45\x00\x45\x33\xF6\x44\x89\x44\x24\x00\x44\x39\x35\x00\x00\x00\x00\x41\x8B\xF0\x8B\xFA\x89\x54\x24\x00\x48\x8B\xD9\x48\x89\x4D\x00\xC6\x44\x24\x00\x00\x0F\x85\x00\x00\x00\x00\xF6\x05\x00\x00\x00\x00\x00\x0F\x85"sv,
+    -0xA // Not going to start, because the start generally gets hooked with a jmp by other overlays
+};
 
 DWORD WINAPI hookThread(LPVOID lpParam) {
 
     uintptr_t D3DBase = 0;
     uintptr_t DXGIBase = 0;
-        HMODULE hModule = 0;
-        while (!D3DBase || !DXGIBase) {        //Have to wait till d3d9.dll is loaded
-            MODULEINFO modInfo = { 0 };
-            hModule = GetModuleHandle(L"d3d12.dll");
-            GetModuleInformation(GetCurrentProcess(), hModule, &modInfo, sizeof(MODULEINFO));
-            D3DBase = reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll);
+    HookManager hookMan;
+    MemorySections sections;
 
-            hModule = GetModuleHandle(L"dxgi.dll");
-            GetModuleInformation(GetCurrentProcess(), hModule, &modInfo, sizeof(MODULEINFO));
-            DXGIBase = reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll);
-            Sleep(100);
-        }
+    while (!D3DBase || !DXGIBase) {        //Have to wait till d3d9.dll is loaded
+        MODULEINFO modInfo = { 0 };
+        HMODULE hModule = GetModuleHandle(L"d3d12.dll");
+        GetModuleInformation(GetCurrentProcess(), hModule, &modInfo, sizeof(MODULEINFO));
+        D3DBase = reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll);
+
+        hModule = GetModuleHandle(L"dxgi.dll");
+        GetModuleInformation(GetCurrentProcess(), hModule, &modInfo, sizeof(MODULEINFO));
+        DXGIBase = reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll);
+        hookMan.engineBase = reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll);
+        hookMan.engineSize = static_cast<uintptr_t>(modInfo.SizeOfImage);
+        sections = MemorySections(modInfo);
+        Sleep(100);
+    }
         
-        //MessageBoxA(0, "WAIT", "WAIT", 0);
 
 
-        // Find the vtable for DXGI Swapchain, and patch the Present call
+    // Find DXGI Present function
 
-        // CMTUseCountedObject<class CDXGISwapChainApplicationClass>
-        auto vtableAddr = DXGIBase + 0x000000018009A000 - 0x180000000;
-
-        struct VTabl {
-            dummy_function QueryInterface;
-            dummy_function AddRef;
-            dummy_function Release;
-            dummy_function SetPrivateData;
-            dummy_function SetPrivateDataInterface;
-            dummy_function GetPrivateData;
-            dummy_function GetParent;
-            dummy_function GetDevice;
-            FUN_Present Present;
-            dummy_function GetBuffer;
-            dummy_function SetFullscreenState;
-            dummy_function GetFullscreenState;
-            dummy_function GetDesc;
-            dummy_function ResizeBuffers;
-            dummy_function ResizeTarget;
-            dummy_function GetContainingOutput;
-            dummy_function GetFrameStatistics;
-            dummy_function GetLastPresentCount;
-            dummy_function GetDesc1;
-            dummy_function GetFullscreenDesc;
-            dummy_function GetHwnd;
-            dummy_function Present1;
-            dummy_function IsTemporaryMonoSupported;
-            dummy_function GetRestrictToOutput;
-            dummy_function SetBackgroundColor;
-            dummy_function GetBackgroundColor;
-            dummy_function SetRotation;
-            dummy_function GetRotation;
-            dummy_function SetSourceSize;
-            dummy_function GetSourceSize;
-            dummy_function SetMaximumFrameLatency;
-            dummy_function GetMaximumFrameLatency;
-            dummy_function GetFrameLatencyWaitableObject;
-            dummy_function SetMatrixTransform;
-            dummy_function GetMatrixTransform;
-            dummy_function GetCurrentBackBufferIndex;
-            dummy_function CheckColorSpaceSupport;
-            dummy_function SetColorSpace1;
-            dummy_function ResizeBuffers1;
-        };
-        auto* vTable = (VTabl*)vtableAddr;
-
-        if (!OLD_Present) {
-            OLD_Present = hack_vtable(&vTable->Present, FAKE_Present);
-            hack_vtable(&vTable->Present1, (dummy_function)[](void)->void{fatal_error("Present1"); });;
-        }
-
-
-        IDXGIFactory4* dxgiFactory = nullptr;
-        //if (FAKE_CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory)) != S_OK)
-        //    return false;
-        //
-        //dxgiFactory->Release();
-        
-        //WCHAR fileName[_MAX_PATH];
-        //DWORD size = GetModuleFileName(hModule, fileName, _MAX_PATH);
-        //fileName[size] = NULL;
-        //DWORD handle = 0;
-        //size = GetFileVersionInfoSize(fileName, &handle);
-        //BYTE* versionInfo = new BYTE[size];
-        //if (!GetFileVersionInfo(fileName, handle, size, versionInfo)) {
-        //    return 0;
-        //}
-        //UINT    			len = 0;
-        //VS_FIXEDFILEINFO*   vsfi = NULL;
-        //VerQueryValue(versionInfo, L"\\", (void**) &vsfi, &len);
-        //short version = HIWORD(vsfi->dwFileVersionLS);
-        //short minor = LOWORD(vsfi->dwFileVersionMS);
-        //delete[] versionInfo;
-        //if (minor == 3) {//win 8
-        //    placeHookTotalOffs(D3DBase + 0xBA90, reinterpret_cast<uintptr_t>(D3DendSceneHook));
-        //    D3DendSceneHookJmpBack = D3DBase + 0xBAA9;
-        //} else {//win 7
-        //    placeHookTotalOffs(D3DBase + 0x10A28, reinterpret_cast<uintptr_t>(D3DendSceneHook7));
-        //    D3DendSceneHookJmpBack = D3DBase + 0x10A3C;
-        //}
-
-
-
-        //MODULEINFO modInfo = { 0 };
-        //hModule = GetModuleHandle(NULL);
-        //GetModuleInformation(GetCurrentProcess(), hModule, &modInfo, sizeof(MODULEINFO));
-        //auto engineBase = reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll);
-        //
-        //
-        //d3d9Base = D3DBase;
-        //
-        //size = GetModuleFileName(nullptr, fileName, _MAX_PATH);
-        //fileName[size] = NULL;
-        //auto fname = std::wstring(fileName).substr(size - 15);
-        //if (fname.compare(L"eurotrucks2.exe") == 0) {
-        //    // ETS2 1.28.1.3
-        //    placeHookTotalOffs(engineBase + 0x74360, reinterpret_cast<uintptr_t>(endSceneHook));
-        //    endSceneHookJmpBack = engineBase + 0x74374;
-        //} else {
-        //    // ATS 
-        //    placeHookTotalOffs(engineBase + 0x67CE0, reinterpret_cast<uintptr_t>(endSceneHook));
-        //    endSceneHookJmpBack = engineBase + 0x67CF4;
-        //}
-
-
-
-
-
-
-
-
-
+    auto dxPresent = hookMan.findPattern(pat_DXGIPresent);
+    if (!dxPresent)
+    {
+        MessageBoxA(0, "ETSOverlay failed to find Present function", "ETSOverlay failed to find Present function", MB_OK | MB_ICONERROR | MB_SYSTEMMODAL | MB_SETFOREGROUND);
         return 0;
+    }
+
+    // There should be 3 references to it.
+    // We want CMTUseCountedObject<class CDXGISwapChainApplicationClass>
+
+    for (auto& sec : sections.sections)
+    {
+        // We only want .rdata, which is R
+        if (sec.access & (MemorySection::W | MemorySection::X))
+            continue;
+
+        std::optional<uintptr_t> found;
+        while (found = sec.findInMemory((char*)&dxPresent, sizeof(dxPresent), found ? *found - sec.start : 0))
+        {
+            // We found a reference to present, it is in 3 vtables. We want to only hook the first but whatever just do all for safety
+            // Replacing multiple doesn't matter because OLD_Present is always the same
+            OLD_Present = hack_vtable<FUN_Present>(reinterpret_cast<FUN_Present*>(*found), FAKE_Present);
+        }
+
+    }
+
+    return 0;
 }
+
+
+
+
+// Be a plugin so the game loads us automatically
+
+#include "lib/scs_sdk_1_14/include/scssdk_telemetry.h"
+
+/**
+ * @brief Telemetry API initialization function.
+ *
+ * See scssdk_telemetry.h
+ */
+SCSAPI_RESULT scs_telemetry_init(const scs_u32_t version, const scs_telemetry_init_params_t* const params)
+{
+    return SCS_RESULT_ok;
+}
+
+/**
+ * @brief Telemetry API deinitialization function.
+ *
+ * See scssdk_telemetry.h
+ */
+SCSAPI_VOID scs_telemetry_shutdown(void)
+{
+    __nop();
+    //#TODO cleanup/shutdown browser
+
+    view.reset();
+    renderer.reset();
+}
+
+
+
+
+
 
 BOOL APIENTRY DllMain(HMODULE hModule,
     DWORD  ul_reason_for_call,
@@ -740,23 +568,29 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     //WAIT_FOR_DEBUGGER_ATTACHED;
     switch (ul_reason_for_call) {
         case DLL_PROCESS_ATTACH: {
-
-            //MODULEINFO modInfo = { 0 };
-            //HMODULE hModule = GetModuleHandle(NULL);
-            //GetModuleInformation(GetCurrentProcess(), hModule, &modInfo, sizeof(MODULEINFO));
-            //auto engineBase = reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll);
-            
             //MessageBoxA(0, "WAIT1", "WAIT1", 0);
             DWORD  dwThreadId;
             CreateThread(NULL, 0, hookThread, NULL, 0, &dwThreadId); //Have to wait till d3d9.dll is loaded
         }
-        case DLL_THREAD_ATTACH: {
-
-        }
+        case DLL_THREAD_ATTACH:
+            break;
         case DLL_THREAD_DETACH:
+            break;
         case DLL_PROCESS_DETACH:
+            __nop();
             break;
     }
 
     return TRUE;
 }
+
+
+//todo
+//if we implement the plugin API exports for ETS telemetry, it will load it without needing an injector
+//
+//========== Plugin modules ==========
+//
+//The plugins are implemented as a dynamically loaded libraries(DLL on Windows, SO on Linux) which MUST export set of functions required by the APIs they want to use.The game loads all plugins found by combination of following methods :
+//
+//1) By gathering all libraries from "plugins" subdirectory of the directory containing the game binary(e.g. / bin / win_x86 / plugins).
+//2) (Windows only) By processing all string values stored in registry key "HKEY_LOCAL_MACHINE\SOFTWARE\SCS Software\<GAME_NAME>\Plugins" (GAME_NAME is "Euro Truck Simulator 2" for ETS2 and "American Truck Simulator" for ATS).When targeting 32bit version of the game on 64bit OS, the registry key is stored in "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\SCS Software\<GAME_NAME>\Plugins".The data of those values are interpreted as paths to the libraries, one path per value.The names of the values are not relevant however it is recommended to use something identifying your product to avoid possible conflicts.When installing your product you can create this value including all the keys in the path if they do not exist yet to allow the game to find the plugin even if the user installs the game latter.When uninstalling your product you should remove the value.The keys can be removed if and only if they are empty.

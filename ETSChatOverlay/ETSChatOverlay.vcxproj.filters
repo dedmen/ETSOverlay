@@ -16,6 +16,9 @@
     <Filter Include="Quelldateien\UltralightGPU">
       <UniqueIdentifier>{10fb5c1a-979a-4669-833d-a58f418e6036}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Quelldateien\Hooktools">
+      <UniqueIdentifier>{872d7169-a35f-4516-94b5-e30c794b29ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -69,6 +72,12 @@
     <ClCompile Include="lib\simplefilewatcher\source\FileWatcherWin32.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="HookManager.cpp">
+      <Filter>Quelldateien\Hooktools</Filter>
+    </ClCompile>
+    <ClCompile Include="MemorySection.cpp">
+      <Filter>Quelldateien\Hooktools</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="assembly.asm">
@@ -96,6 +105,12 @@
     </ClInclude>
     <ClInclude Include="FNV1A.hpp">
       <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="HookManager.hpp">
+      <Filter>Quelldateien\Hooktools</Filter>
+    </ClInclude>
+    <ClInclude Include="MemorySection.hpp">
+      <Filter>Quelldateien\Hooktools</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
